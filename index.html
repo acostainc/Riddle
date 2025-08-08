@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Riddle Reveal — March 2026</title>
+  <meta name="description" content="Four sweet riddles that end with a joyful reveal." />
+  <style>
+    :root {
+      --bg1: #fff7f5;
+      --bg2: #f3f8ff;
+      --card: #ffffff;
+      --ink: #1b1b1b;
+      --muted: #6b7280;
+      --accent: #7c3aed; /* purple */
+      --accent-2: #f59e0b; /* amber */
+      --good: #10b981; /* green */
+      --bad: #ef4444; /* red */
+      --shadow: 0 10px 30px rgba(0,0,0,0.10);
+      --radius: 22px;
+    }
+
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--ink);
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 560px;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 0 0 6px;
+    }
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .progress { 
+      display: flex; align-items: center; gap: 10px; margin-bottom: 16px; 
+    }
+    .progress-bar { 
+      flex: 1; height: 8px; background: #eef2ff; border-radius: 999px; overflow: hidden;
+    }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 400ms ease; }
+    .progress-text { font-size: 13px; color: var(--muted); min-width: 48px; text-align: right; }
+
+    .riddle { font-size: 18px; line-height: 1.4; margin: 16px 0 18px; }
+
+    .field { display: grid; gap: 8px; margin: 0 0 12px; }
+    label { font-size: 14px; color: var(--muted); }
+    input[type="text"] {
+      font-size: 18px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1.5px solid #e5e7eb;
+      outline: none;
+      transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.06s ease;
+    }
+    input[type="text"]:focus {
+      border-color: #c7d2fe;
+      box-shadow: 0 0 0 6px rgba(124,58,237,0.10);
+    }
+
+    .row { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      appearance: none; border: 0; border-radius: 14px; padding: 12px 16px; font-size: 16px; font-weight: 700; cursor: pointer; 
+      background: linear-gradient(90deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: var(--shadow);
+      transition: transform 0.06s ease, filter 0.2s ease;
+    }
+    .btn:active { transform: translateY(1px) scale(0.99); }
+    .btn.secondary { background: #f3f4f6; color: #111827; }
+
+    .hint { color: var(--muted); font-size: 14px; min-height: 20px; }
+    .hint.bad { color: var(--bad); }
+    .hint.good { color: var(--good); }
+
+    .shake { animation: shake 280ms ease; }
+    @keyframes shake {
+      10%, 90% { transform: translateX(-1px); }
+      20%, 80% { transform: translateX(2px); }
+      30%, 50%, 70% { transform: translateX(-4px); }
+      40%, 60% { transform: translateX(4px); }
+    }
+
+    /* Reveal styles */
+    .reveal {
+      text-align: center; padding: 18vh 12px; min-height: 62vh;
+    }
+    .reveal h1 { font-size: clamp(28px, 7vw, 56px); margin: 0 0 10px; letter-spacing: -0.02em; }
+    .reveal p { font-size: clamp(16px, 3.8vw, 22px); color: var(--muted); margin: 0 0 22px; }
+
+    .confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+
+    .footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 14px; }
+
+    /* Start screen embellishment */
+    .halo { position: absolute; width: 260px; height: 260px; right: -40px; top: -40px; background: radial-gradient(closest-side, rgba(124,58,237,0.16), transparent 70%); filter: blur(2px); border-radius: 50%; pointer-events: none; z-index: 0; }
+    .halo.h2 { left: -60px; bottom: -60px; top: auto; right: auto; background: radial-gradient(closest-side, rgba(245,158,11,0.18), transparent 70%); pointer-events: none; z-index: 0; }
+
+    /* Ensure content sits above decorative halos */
+    header, #start-screen, #quiz, #reveal { position: relative; z-index: 1; }
+  </style>
+</head>
+<body>
+  <canvas class="confetti-canvas" aria-hidden="true"></canvas>
+  <main class="wrap">
+    <section class="card" role="group" aria-label="Riddle announcement">
+      <div class="halo" aria-hidden="true"></div>
+      <div class="halo h2" aria-hidden="true"></div>
+      <header>
+        <h1 class="title" id="title">A Little Riddle Adventure</h1>
+        <p class="subtitle" id="subtitle">Solve four short riddles to unlock a happy surprise.</p>
+      </header>
+
+      <div id="start-screen">
+        <p class="riddle" style="margin-top:12px">Designed for phones • Big tap targets • Warm fuzzies guaranteed 💛</p>
+        <button class="btn" id="start-btn">Start</button>
+        <div class="footer">Made with love by Alex &amp; Family</div>
+      </div>
+
+      <div id="quiz" hidden>
+        <div class="progress" aria-live="polite">
+          <div class="progress-bar" aria-hidden="true"><div class="progress-fill" id="bar"></div></div>
+          <div class="progress-text" id="ptext">1/4</div>
+        </div>
+        <div class="riddle" id="riddle" aria-live="polite"></div>
+        <form class="field" id="form" autocomplete="off">
+          <label for="answer">Your answer</label>
+          <input id="answer" type="text" inputmode="text" autocapitalize="none" autocomplete="off" spellcheck="false" aria-describedby="hint" required />
+          <div class="row">
+            <button class="btn" type="submit">Submit</button>
+            <button class="btn secondary" type="button" id="skip" aria-disabled="true" disabled>Next</button>
+          </div>
+          <div id="hint" class="hint" role="status"></div>
+        </form>
+      </div>
+
+      <div id="reveal" class="reveal" hidden>
+        <h1 id="headline">We’re having a baby — March 2026</h1>
+        <p id="subhead">Our first child 🥹💛 Thank you for sharing our joy.</p>
+        <div class="row" style="justify-content:center; gap:12px; flex-wrap:wrap;">
+          <button class="btn" id="share">Share</button>
+          <button class="btn secondary" id="copy">Copy Link</button>
+          <button class="btn secondary" id="replay">Replay</button>
+        </div>
+        <div class="footer">Tap replay to let someone else try!</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    /* ==============================
+       Customization — edit here
+       ============================== */
+    const REVEAL_DATE = 'March 2026';
+
+    // Riddles & answers (answers are case-insensitive; last must be 'baby')
+    const RIDDLES = [
+      { q: "I’m taken before you can see me, and kept to remember a moment. What am I?", a: "photo" },
+      { q: "I follow you day and night but disappear in the dark. What am I?", a: "shadow" },
+      { q: "I speak without a mouth and can be heard but not seen. What am I?", a: "echo" },
+      { q: "Small but mighty, I’m a bundle of joy arriving to make two hearts three. What am I?", a: "baby" },
+    ];
+
+    /* ==============================
+       Light answer obfuscation
+       ============================== */
+    const encode = (s) => btoa(unescape(encodeURIComponent(s)));
+    const decode = (s) => decodeURIComponent(escape(atob(s)));
+    const ANSWERS = RIDDLES.map(x => encode(x.a.toLowerCase()));
+
+    /* ==============================
+       Elements
+       ============================== */
+    const el = (id) => document.getElementById(id);
+    const startScreen = el('start-screen');
+    const quiz = el('quiz');
+    const reveal = el('reveal');
+    const riddle = el('riddle');
+    const form = el('form');
+    const answer = el('answer');
+    const hint = el('hint');
+    const bar = el('bar');
+    const ptext = el('ptext');
+
+    /* ==============================
+       State & persistence
+       ============================== */
+    const KEY = 'riddle-reveal-v1';
+    let state = { i: 0 };
+    try {
+      const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (saved && Number.isInteger(saved.i) && saved.i >= 0 && saved.i <= RIDDLES.length) state = saved;
+    } catch { /* ignore */ }
+
+    const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* storage unavailable */ } };
+    const reset = () => { state = { i: 0 }; save(); };
+
+    /* ==============================
+       UI helpers
+       ============================== */
+    function setProgress(i) {
+      const pct = Math.round((i / RIDDLES.length) * 100);
+      bar.style.width = pct + '%';
+      ptext.textContent = `${i+1}/${RIDDLES.length}`;
+    }
+
+    function showRiddle(i) {
+      if (!Number.isInteger(i) || i < 0 || i >= RIDDLES.length) i = 0;
+      quiz.hidden = false; reveal.hidden = true; startScreen.hidden = true;
+      setProgress(i);
+      riddle.textContent = RIDDLES[i].q;
+      answer.value = '';
+      hint.textContent = '';
+      setTimeout(() => answer.focus(), 50);
+      state.i = i; save();
+    }
+
+    function showReveal() {
+      quiz.hidden = true; startScreen.hidden = true; reveal.hidden = false;
+      document.title = `We’re having a baby — ${REVEAL_DATE}`;
+      el('headline').textContent = `We’re having a baby — ${REVEAL_DATE}`;
+      confettiBurst();
+      save();
+    }
+
+    /* ==============================
+       Confetti (tiny, dependency-free)
+       ============================== */
+    const cvs = document.querySelector('.confetti-canvas');
+    const ctx = cvs.getContext('2d');
+    let confettiTimer = null, particles = [];
+
+    function resizeCanvas(){ cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas, { passive: true }); resizeCanvas();
+
+    function makeParticle(){
+      const x = Math.random() * cvs.width;
+      const y = -10;
+      const size = 6 + Math.random() * 6;
+      const vy = 2 + Math.random() * 3;
+      const vx = (Math.random() - 0.5) * 2;
+      const rot = Math.random() * Math.PI;
+      const vr = (Math.random() - 0.5) * 0.2;
+      // pleasant palette
+      const colors = ['#7c3aed', '#f59e0b', '#10b981', '#60a5fa', '#f472b6'];
+      const color = colors[Math.floor(Math.random()*colors.length)];
+      return { x, y, size, vy, vx, rot, vr, color };
+    }
+
+    function drawParticle(p){
+      ctx.save();
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+      ctx.restore();
+    }
+
+    function step(){
+      ctx.clearRect(0,0,cvs.width,cvs.height);
+      particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.rot += p.vr; });
+      particles = particles.filter(p => p.y < cvs.height + 20);
+      particles.forEach(drawParticle);
+      if (particles.length > 0) requestAnimationFrame(step);
+    }
+
+    function confettiBurst(){
+      // several waves
+      for (let wave = 0; wave < 5; wave++) {
+        setTimeout(() => {
+          for (let i = 0; i < 80; i++) particles.push(makeParticle());
+          step();
+        }, wave * 200);
+      }
+      // gentle fall
+      clearInterval(confettiTimer);
+      confettiTimer = setInterval(() => { particles.push(makeParticle()); if (particles.length > 600) particles.splice(0, particles.length - 600); }, 120);
+      setTimeout(() => { clearInterval(confettiTimer); }, 5000);
+    }
+
+    /* ==============================
+       Events
+       ============================== */
+    const startBtn = el('start-btn');
+    if (startBtn) {
+      startBtn.addEventListener('click', () => { state.i = 0; save(); showRiddle(0); });
+      // iOS touch safety (some webviews need this)
+      startBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startBtn.click(); }, { passive: false });
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const i = state.i;
+      const val = (answer.value || '').trim().toLowerCase();
+      if (!val) return;
+
+      const correct = encode(val) === ANSWERS[i];
+
+      if (!correct) {
+        hint.textContent = 'Not quite — try again!';
+        hint.className = 'hint bad';
+        answer.classList.remove('shake');
+        void answer.offsetWidth; // restart animation
+        answer.classList.add('shake');
+        return;
+      }
+
+      // success
+      hint.textContent = 'Great!';
+      hint.className = 'hint good';
+      const next = i + 1;
+      state.i = next; save();
+
+      answer.style.transform = 'scale(0.98)';
+      setTimeout(() => { answer.style.transform = ''; }, 120);
+
+      if (next >= RIDDLES.length) {
+        showReveal();
+      } else {
+        setTimeout(() => showRiddle(next), 280);
+      }
+    });
+
+    // Guard: Next button can only advance after correct answer
+    el('skip').addEventListener('click', () => {
+      hint.textContent = 'You need the correct answer to continue.';
+      hint.className = 'hint bad';
+    });
+
+    // Share & copy & replay
+    el('share').addEventListener('click', async () => {
+      const text = `We’re having a baby — ${REVEAL_DATE}!`;
+      const url = location.href;
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: 'Big News', text, url });
+        } else {
+          await navigator.clipboard.writeText(url);
+          alert('Link copied to clipboard!');
+        }
+      } catch (_) { /* user canceled */ }
+    });
+
+    el('copy').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(location.href); alert('Link copied!'); } catch { /* ignore */ }
+    });
+
+    el('replay').addEventListener('click', () => {
+      reset();
+      startScreen.hidden = false; quiz.hidden = true; reveal.hidden = true;
+    });
+
+    // Init on load
+    (function init(){
+      el('headline').textContent = `We’re having a baby — ${REVEAL_DATE}`;
+
+      if (state.i >= RIDDLES.length) {
+        showReveal();
+      } else if (state.i > 0) {
+        showRiddle(state.i);
+      }
+    })();
+  </script>
+</body>
+</html>
